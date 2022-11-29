@@ -28,4 +28,13 @@ interface HackerNewsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun saveArticleItem(articleItem: ArticleResponseEntity)
 
+    @Query("DELETE FROM ALL_STORIES_TABLE WHERE storyType = :storyType")
+    fun deleteStories(storyType: Int): Int
+
+    @Query("SELECT COUNT(*) FROM ALL_STORIES_TABLE WHERE storyType = :storyType")
+    fun getDataCount(storyType: Int): Int
+
+    @Query("SELECT COUNT(*) FROM STORY_TABLE")
+    fun getArticleItemsCount(): Int
+
 }

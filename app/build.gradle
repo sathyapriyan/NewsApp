@@ -95,4 +95,7 @@ dependencies {
     // LiveData Compose
     implementation 'androidx.compose.runtime:runtime-livedata:1.4.0-alpha02'
 
+    // Nav Arguments
+    implementation "androidx.navigation:navigation-compose:2.5.3"
+
 }

@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.hackernews.newsapp.data.local.entity.AllStoriesEntity
 import com.hackernews.newsapp.data.repository.HackerNewsRepository
 import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.util.ApiResponeResult
@@ -31,63 +30,85 @@ class HomeViewModel @Inject constructor(
 
     fun onRefreshTriggered() {
 
-        viewModelScope.launch(ioDispatcher) {
-
-            hackerNewsRepository.saveNewStories()
-
-        }
+        loadNewStories()
 
     }
 
-    fun loadNewStories() {
+    private fun loadNewStories() {
 
         _isRefreshing.value = true
 
         viewModelScope.launch(ioDispatcher) {
 
-            val response = hackerNewsRepository.getNewStories()
+            val response =  hackerNewsRepository.getNewStories()
 
             response.collect {
 
                 it.onSuccess { allStoriesEntityList ->
 
-                    val subList = allStoriesEntityList
-                        .get(0)
-                        .stories
-                        .split(",")
-                        .map {
-                            it.trim().toInt()
-                        }
-                        .subList(0,10)
+                    println(" Stories from DB --> $allStoriesEntityList")
 
-                    val tempList: MutableList<ArticleResponse> = mutableListOf()
+                    if (allStoriesEntityList.isNotEmpty()) {
 
-                    subList.forEach { articleId ->
+                        loadArticleItems(allStoriesEntityList[0]
+                            .stories
+                            .split(",")
+                            .map {
+                                it.trim().toInt()
+                            })
 
-                        val response = hackerNewsRepository.getArticleItem(articleId = articleId)
+                    } else {
 
-                        response.collect {
-
-                            it.onSuccess {
-
-                                // tempList.addAll(it)
-                                println("ViewModel Response --> $it")
-
-                            }
-
-                            it.onFailure { throwable ->
-
-                                _isRefreshing.value = false
-                                _loadNewStoriesResponse.postValue(ApiResponeResult.Error(message = throwable.localizedMessage))
-
-                            }
-
-                        }
+                        hackerNewsRepository.getNewStories()
 
                     }
 
-                    // _isRefreshing.value = false
-                    // _loadNewStoriesResponse.postValue(ApiResponeResult.Success(tempList))
+                }
+
+                it.onFailure { throwable ->
+
+                    _isRefreshing.value = false
+                    _loadNewStoriesResponse.postValue(ApiResponeResult.Error(message = throwable.localizedMessage))
+
+                }
+
+            }
+
+        }
+
+    }
+
+    private fun loadArticleItems(articleItems: List<Int>) {
+
+        println("List Article IDs --> $articleItems")
+
+        viewModelScope.launch(ioDispatcher) {
+
+            if (hackerNewsRepository.getArticleItemsCount() == -1) {
+
+                articleItems.map {
+
+                    hackerNewsRepository.saveArticleItem(articleId = it)
+
+                }
+            }
+
+            val response = hackerNewsRepository.getArticleItem()
+
+            response.collect {
+
+                it.onSuccess {
+
+                    if (it.isNotEmpty()) {
+
+                        _isRefreshing.value = false
+                        _loadNewStoriesResponse.postValue(ApiResponeResult.Success(it.subList(28,it.size)))
+
+                    } else {
+
+                        hackerNewsRepository.getArticleItem()
+
+                    }
 
                 }
 

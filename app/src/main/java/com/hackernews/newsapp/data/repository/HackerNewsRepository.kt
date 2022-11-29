@@ -19,15 +19,15 @@ class HackerNewsRepository @Inject constructor(
 
         return hackerNewsDao
             .getAllStoriesList(storyType = storyType)
+            .onEach {
+                if (it.isEmpty()) {
+                    saveNewStories()
+                }
+            }
             .map {
 
                 Result.success(it)
 
-            }
-            .onEach {
-                if (it.getOrDefault(emptyList()).isEmpty()) {
-                    saveNewStories()
-                }
             }
             .catch {
                 emit(Result.failure(it))
@@ -39,15 +39,15 @@ class HackerNewsRepository @Inject constructor(
 
         return hackerNewsDao
             .getAllStoriesList(storyType = storyType)
+            .onEach {
+                if (it.isEmpty()) {
+                    saveTopStories()
+                }
+            }
             .map {
 
                 Result.success(it)
 
-            }
-            .onEach {
-                if (it.getOrDefault(emptyList()).isEmpty()) {
-                    saveTopStories()
-                }
             }
             .catch {
                 emit(Result.failure(it))
@@ -59,15 +59,15 @@ class HackerNewsRepository @Inject constructor(
 
         return hackerNewsDao
             .getAllStoriesList(storyType = storyType)
+            .onEach {
+                if (it.isEmpty()) {
+                    saveBestStories()
+                }
+            }
             .map {
 
                 Result.success(it)
 
-            }
-            .onEach {
-                if (it.getOrDefault(emptyList()).isEmpty()) {
-                    saveBestStories()
-                }
             }
             .catch {
                 emit(Result.failure(it))
@@ -75,9 +75,7 @@ class HackerNewsRepository @Inject constructor(
 
     }
 
-    fun getArticleItem(
-        articleId: Int
-    ): Flow<Result<List<ArticleResponse>>> {
+    fun getArticleItem(): Flow<Result<List<ArticleResponse>>> {
 
         val articleResponseList = mutableListOf<ArticleResponse>()
 
@@ -91,30 +89,41 @@ class HackerNewsRepository @Inject constructor(
                 Result.success(articleResponseList)
 
             }
-            .onEach {
-
-                if (it.getOrDefault(emptyList()).isEmpty()) {
-
-                    saveArticleItem(articleId = articleId)
-
-                }
-
-            }
             .catch {
                 emit(Result.failure(it))
             }
 
     }
 
+    fun getArticleItemsCount(): Int = hackerNewsDao.getArticleItemsCount()
+
     suspend fun saveNewStories() {
 
         hackerNewsApi.getNewStories().also { allStories ->
 
-            hackerNewsDao.saveAllStories(
-                AllStoriesEntity(
-                    0,
-                    allStories.toString().substring(1,allStories.toString().length-1),
-                    1))
+            if (hackerNewsDao.getDataCount(storyType = 1) == -1) {
+
+                hackerNewsDao.saveAllStories(
+                    AllStoriesEntity(
+                        0,
+                        allStories.toString().substring(1,allStories.toString().length-1),
+                        1))
+
+            } else {
+
+                val deleteResponse = hackerNewsDao.deleteStories(storyType = 1)
+
+                if (deleteResponse != -1) {
+
+                    hackerNewsDao.saveAllStories(
+                        AllStoriesEntity(
+                            0,
+                            allStories.toString().substring(1,allStories.toString().length-1),
+                            1))
+
+                }
+
+            }
 
         }
 
