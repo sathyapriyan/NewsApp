@@ -3,6 +3,12 @@ package com.hackernews.newsapp.util
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.os.Build
+import android.widget.Toast
+import androidx.annotation.RequiresApi
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 object CommonUtil {
 
@@ -21,6 +27,27 @@ object CommonUtil {
         }
 
         return false
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun convertEpochToActualTime(timeInMillis: Long): String {
+
+        return Instant.ofEpochSecond(timeInMillis)
+            .atZone(ZoneId.systemDefault())
+            .toLocalDateTime()
+            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a"))
+            .toString()
+
+    }
+
+    fun toastMessage(context: Context, message: String): Toast {
+
+        return Toast.makeText(
+            context,
+            message,
+            Toast.LENGTH_SHORT
+        )
 
     }
 

@@ -31,10 +31,16 @@ interface HackerNewsDao {
     @Query("DELETE FROM ALL_STORIES_TABLE WHERE storyType = :storyType")
     fun deleteStories(storyType: Int): Int
 
+    @Query("DELETE FROM STORY_TABLE WHERE parent = :parentId")
+    fun deleteDuplicateComments(parentId: String): Int
+
     @Query("SELECT COUNT(*) FROM ALL_STORIES_TABLE WHERE storyType = :storyType")
     fun getDataCount(storyType: Int): Int
 
     @Query("SELECT COUNT(*) FROM STORY_TABLE")
     fun getArticleItemsCount(): Int
+
+    @Query("SELECT * FROM STORY_TABLE WHERE parent = :parentId")
+    fun getComments(parentId: String): Flow<List<ArticleResponseEntity>>
 
 }

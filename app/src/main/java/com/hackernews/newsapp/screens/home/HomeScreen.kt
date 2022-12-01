@@ -2,12 +2,12 @@ package com.hackernews.newsapp.screens.home
 
 import android.content.res.Configuration
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -15,6 +15,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,7 +23,10 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.navigation.Screens
 import com.hackernews.newsapp.screens.components.TitleCard
 import com.hackernews.newsapp.ui.theme.BlueVogue
@@ -30,20 +34,25 @@ import com.hackernews.newsapp.ui.theme.RedRibbon
 import com.hackernews.newsapp.ui.theme.TheNewsAppTheme
 import com.hackernews.newsapp.ui.theme.screenBackgroundColor
 import com.hackernews.newsapp.util.ApiResponeResult
-import com.hackernews.newsapp.util.Constants.STORY_SCREEN_ROUTE
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import com.hackernews.newsapp.util.CommonUtil
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalPagerApi::class)
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(
+    navController: NavHostController,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
 
-    val viewModel = hiltViewModel<HomeViewModel>()
+    // val viewModel = hiltViewModel<HomeViewModel>()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
     val newStoriesResponse = viewModel.loadNewStoriesResponse.observeAsState().value
+    var articleResponseList = remember {
+        emptyList<ArticleResponse>()
+    }
 
     val systemUiController = rememberSystemUiController()
     val statusBarColor = MaterialTheme.colors.screenBackgroundColor
@@ -52,9 +61,17 @@ fun HomeScreen(navController: NavHostController) {
         refreshing = isRefreshing, onRefresh = viewModel::onRefreshTriggered
     )
 
+    val coroutineScope = rememberCoroutineScope()
+
     var isDataLoading = remember {
         mutableStateOf(true)
     }
+
+    val context = LocalContext.current
+
+    val pagerState = rememberPagerState(
+        initialPage = 0
+    )
 
     TheNewsAppTheme {
 
@@ -65,6 +82,12 @@ fun HomeScreen(navController: NavHostController) {
             )
 
         }
+
+        /*LaunchedEffect(Unit) {
+
+            viewModel.loadNewStories()
+
+        }*/
 
         Scaffold(
             topBar = { TopBarComp {} }
@@ -78,7 +101,7 @@ fun HomeScreen(navController: NavHostController) {
                     .pullRefresh(pullRefreshState)
             ) {
 
-                val (pullRefreshIndicator, circularProgress) = createRefs()
+                val ( pullRefreshIndicator, circularProgress) = createRefs()
 
                 if (isDataLoading.value) {
 
@@ -101,7 +124,7 @@ fun HomeScreen(navController: NavHostController) {
                         .padding(10.dp),
                     content = {
 
-                        when(newStoriesResponse) {
+                        when (newStoriesResponse) {
 
                             is ApiResponeResult.Loading -> {
 
@@ -113,28 +136,62 @@ fun HomeScreen(navController: NavHostController) {
 
                                 isDataLoading.value = false
 
-                                items(count = 10) { i ->
+                                articleResponseList = newStoriesResponse.data!!
+
+                                itemsIndexed(articleResponseList) { index, item ->
 
                                     TitleCard(
                                         modifier = Modifier,
-                                        title = newStoriesResponse.data?.get(i)?.title!!,
-                                        commentCount = newStoriesResponse.data[i].kids?.size.toString(),
-                                        scoreCount = newStoriesResponse.data[i].score!!,
-                                        dateAndTime = Instant
-                                            .ofEpochSecond(newStoriesResponse.data[i].time!!.toLong())
-                                            .atZone(ZoneId.systemDefault())
-                                            .toLocalDateTime()
-                                            .format(DateTimeFormatter.ofPattern("dd-MM-yyyy hh:mm a"))
-                                            .toString(),
-                                        author = newStoriesResponse.data[i].articleBy!!,
-                                        url = newStoriesResponse.data[i].url!!
-                                    ) { url ->
+                                        articleResponse = item,
+                                        { parentId, comments ->
 
-                                        navController.navigate(
-                                            route = "story_screen/$url"
-                                        )
+                                            if (comments?.isNotEmpty() == true) {
 
-                                    }
+                                                navController.navigate(
+                                                    Screens.Comments.passParentIdAndCommentList(
+                                                        parentId = parentId,
+                                                        commentsList = comments.toString()
+                                                            .substring(
+                                                                1,
+                                                                comments.toString().length - 1
+                                                            )
+                                                    )
+                                                )
+
+                                            } else {
+
+                                                CommonUtil.toastMessage(
+                                                    context = context,
+                                                    message = "No Comments"
+                                                ).show()
+
+                                            }
+
+                                        },
+                                        { url ->
+
+                                            val encodedUrl = URLEncoder.encode(
+                                                url,
+                                                StandardCharsets.UTF_8.toString()
+                                            )
+
+                                            if (url != null) {
+
+                                                navController.navigate(
+                                                    route = Screens.Story.passUrl(url = encodedUrl)
+                                                )
+
+                                            } else {
+
+                                                CommonUtil.toastMessage(
+                                                    context = context,
+                                                    message = "No URL found for this article!!"
+                                                ).show()
+
+                                            }
+
+                                        }
+                                    )
 
                                 }
 
@@ -147,7 +204,8 @@ fun HomeScreen(navController: NavHostController) {
                                 item {
 
                                     Text(
-                                        text = "${newStoriesResponse.message}")
+                                        text = "${newStoriesResponse.message}"
+                                    )
 
                                 }
 

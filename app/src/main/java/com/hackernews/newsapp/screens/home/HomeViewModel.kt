@@ -84,9 +84,17 @@ class HomeViewModel @Inject constructor(
 
         viewModelScope.launch(ioDispatcher) {
 
-            if (hackerNewsRepository.getArticleItemsCount() == -1) {
+            val articleItemCount = hackerNewsRepository.getArticleItemsCount()
+
+            println("Article Item Count --> $articleItemCount")
+
+            if ( articleItemCount == 0) {
+
+                println("Inside fetching data")
 
                 articleItems.map {
+
+                    println("Fetching data...")
 
                     hackerNewsRepository.saveArticleItem(articleId = it)
 
@@ -97,12 +105,14 @@ class HomeViewModel @Inject constructor(
 
             response.collect {
 
+                println("Inside collecting data")
+
                 it.onSuccess {
 
                     if (it.isNotEmpty()) {
 
                         _isRefreshing.value = false
-                        _loadNewStoriesResponse.postValue(ApiResponeResult.Success(it.subList(28,it.size)))
+                        _loadNewStoriesResponse.postValue(ApiResponeResult.Success(it.subList(428,448)))
 
                     } else {
 

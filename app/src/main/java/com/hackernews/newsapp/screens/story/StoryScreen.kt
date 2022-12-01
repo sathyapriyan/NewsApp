@@ -45,7 +45,7 @@ fun StoryScreen(
             ) {
 
                 LoadWebUrl(
-                    url = "https://ooh.directory",
+                    url = url,
                     context = context
                 )
 

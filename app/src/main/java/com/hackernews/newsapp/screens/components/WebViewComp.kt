@@ -18,6 +18,9 @@ context: Context) {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT)
             webViewClient = WebViewClient()
+            settings.apply {
+                javaScriptEnabled = true
+            }
             loadUrl(url)
         }
     })

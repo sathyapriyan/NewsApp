@@ -27,21 +27,39 @@ fun SetupNavGraph(navController: NavHostController) {
         }
 
         composable(
-            route = "story_screen/?url={url}", // "story_screen/{url}"   Screens.Story.route
+            route = Screens.Story.route,
             arguments = listOf(navArgument(
-                "url"
+                STORY_SCREEN_URL
             ) {
                 type = NavType.StringType
             })
         ) {
+
+            println("URL Value --> ${it.arguments?.getString(STORY_SCREEN_URL)}")
+
             StoryScreen(
                 navController = navController,
-                url = it.arguments?.getString("url")!!
+                url = it.arguments?.getString(STORY_SCREEN_URL)!!
             )
         }
 
-        composable(route = Screens.Comments.route) {
-            CommentsScreen(navController = navController)
+        composable(
+            route = Screens.Comments.route,
+            arguments = listOf(
+                navArgument(COMMENTS_SCREEN_PARENT_ID) { type = NavType.StringType },
+                navArgument(COMMENTS_SCREENS_COMMENTS) { type = NavType.StringType }
+            )) {
+
+            val commentsList = it.arguments?.getString(COMMENTS_SCREENS_COMMENTS)!!.trim().split(",").map { it.trim().toInt()}
+
+            println("commentsList NavGraph --> ${it.arguments?.getString(COMMENTS_SCREENS_COMMENTS)}")
+            println("commentsList NavGraph2 --> $commentsList")
+
+            CommentsScreen(
+                navController = navController,
+                parentId = it.arguments?.getString(COMMENTS_SCREEN_PARENT_ID)!!,
+                comments = commentsList
+            )
         }
 
     }

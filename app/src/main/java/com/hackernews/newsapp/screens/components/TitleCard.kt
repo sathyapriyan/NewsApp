@@ -1,5 +1,7 @@
 package com.hackernews.newsapp.screens.components
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,19 +23,17 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import com.hackernews.newsapp.ui.theme.BlueVogue
 import com.hackernews.newsapp.ui.theme.GrayAthens
 import com.hackernews.newsapp.R
+import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.ui.theme.BlueLightLynch
+import com.hackernews.newsapp.util.CommonUtil
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun TitleCard(
     modifier: Modifier = Modifier,
-    title: String = "A Modchip to Root Starlink User Terminals Through Voltage Glitching",
-    commentCount: String = "37",
-    scoreCount: String = "278",
-    dateAndTime: String = "29-11-2022 05:38 PM",
-    author: String = "Sands",
-    url: String,
-    onClick: (String) -> Unit
-
+    articleResponse: ArticleResponse,
+    onClickComment: (String, List<Int>?) -> Unit,
+    onClickCard: (String?) -> Unit
 ) {
 
     Card(
@@ -42,7 +42,7 @@ fun TitleCard(
             .wrapContentHeight()
             .padding(5.dp)
             .clickable {
-                       onClick(url)
+                onClickCard(articleResponse.url)
             },
         backgroundColor = Color.White,
         shape = RoundedCornerShape(10.dp),
@@ -56,7 +56,7 @@ fun TitleCard(
         ) {
 
             val (titleTxt, btnComment, articleTime, cardScore,
-            authorTxt) = createRefs()
+                authorTxt) = createRefs()
 
             TextCard(
                 modifier = Modifier
@@ -68,7 +68,7 @@ fun TitleCard(
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                     },
-                text = title,
+                text = articleResponse.title!!,
                 color = BlueVogue,
                 size = 14.sp,
                 fontWeight = FontWeight.Bold
@@ -82,11 +82,14 @@ fun TitleCard(
                         bottom.linkTo(articleTime.top)
                         start.linkTo(titleTxt.start)
                         end.linkTo(cardScore.start)
+                    }
+                    .clickable {
+                        onClickComment(articleResponse.id,articleResponse.kids)
                     },
                 iconId = R.drawable.comment,
                 strokeColor = GrayAthens,
                 color = BlueLightLynch,
-                text = if (commentCount == "null") "0" else commentCount,
+                text = if (articleResponse.kids?.size.toString() == "null") "0" else articleResponse.kids?.size.toString(),
                 textSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -99,12 +102,13 @@ fun TitleCard(
                         bottom.linkTo(btnComment.bottom)
                         start.linkTo(
                             btnComment.end,
-                        margin = 10.dp)
+                            margin = 10.dp
+                        )
                     },
                 iconId = R.drawable.ic_score,
                 strokeColor = GrayAthens,
                 color = BlueLightLynch,
-                text = scoreCount,
+                text = articleResponse.score!!,
                 textSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -118,7 +122,7 @@ fun TitleCard(
                         bottom.linkTo(parent.bottom)
                         start.linkTo(btnComment.start)
                     },
-                text = dateAndTime,
+                text = CommonUtil.convertEpochToActualTime(articleResponse.time!!.toLong()),
                 color = BlueLightLynch,
                 size = 10.sp,
                 fontWeight = FontWeight.Normal
@@ -133,7 +137,7 @@ fun TitleCard(
                         bottom.linkTo(articleTime.bottom)
                         end.linkTo(parent.end)
                     },
-                text = "- $author",
+                text = "- ${articleResponse.articleBy}",
                 color = BlueLightLynch,
                 size = 10.sp,
                 fontWeight = FontWeight.Normal
@@ -180,7 +184,7 @@ fun CardIconWithText(
         modifier = modifier
             .wrapContentSize(),
         backgroundColor = GrayAthens,
-        border = BorderStroke(1.dp,strokeColor),
+        border = BorderStroke(1.dp, strokeColor),
         shape = RoundedCornerShape(30.dp)
     ) {
 

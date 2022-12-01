@@ -95,6 +95,26 @@ class HackerNewsRepository @Inject constructor(
 
     }
 
+    fun getComments(parentId: String): Flow<Result<List<ArticleResponse>>> {
+
+        val commentsResponseList = mutableListOf<ArticleResponse>()
+
+        return hackerNewsDao
+            .getComments(parentId = parentId)
+            .map {
+
+                it.map {
+                    commentsResponseList.add(it.toArticleResponse())
+                }
+                Result.success(commentsResponseList)
+
+            }
+            .catch {
+                emit(Result.failure(it))
+            }
+
+    }
+
     fun getArticleItemsCount(): Int = hackerNewsDao.getArticleItemsCount()
 
     suspend fun saveNewStories() {
@@ -164,6 +184,24 @@ class HackerNewsRepository @Inject constructor(
     suspend fun saveArticleItem(articleId: Int) {
 
         hackerNewsApi.getItem(articleId = articleId).also { articleResponse ->
+
+            // val deleteResponse = hackerNewsDao.deleteDuplicateComments(parentId = articleId.toString())
+             println("articleResponse  --> $articleResponse")
+
+            hackerNewsDao.saveArticleItem(
+                articleItem = articleResponse.toArticleResponseEntity()
+            )
+
+        }
+
+    }
+
+    suspend fun saveComment(articleId: Int) {
+
+        hackerNewsApi.getItem(articleId = articleId).also { articleResponse ->
+
+            // val deleteResponse = hackerNewsDao.deleteDuplicateComments(parentId = articleId.toString())
+            println("articleResponse  --> $articleResponse")
 
             hackerNewsDao.saveArticleItem(
                 articleItem = articleResponse.toArticleResponseEntity()
