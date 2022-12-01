@@ -17,9 +17,17 @@ interface HackerNewsDao {
         storyType: Int
     ): Flow<List<AllStoriesEntity>>
 
-    @Query("SELECT * FROM STORY_TABLE WHERE type = :itemType")
+    @Query("SELECT * FROM STORY_TABLE WHERE type = :itemType AND storyType = :storyType ")
     fun getArticleItemStory(
-        itemType: String = TYPE_STORY
+        itemType: String = TYPE_STORY,
+        storyType: Int
+    ): Flow<List<ArticleResponseEntity>>
+
+    @Query("SELECT * FROM STORY_TABLE WHERE type = :itemType AND storyType = :storyType  AND text LIKE '%' || :text || '%'")
+    fun getArticleItemStorySearch(
+        itemType: String = TYPE_STORY,
+        storyType: Int,
+        text:String
     ): Flow<List<ArticleResponseEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -37,8 +45,8 @@ interface HackerNewsDao {
     @Query("SELECT COUNT(*) FROM ALL_STORIES_TABLE WHERE storyType = :storyType")
     fun getDataCount(storyType: Int): Int
 
-    @Query("SELECT COUNT(*) FROM STORY_TABLE")
-    fun getArticleItemsCount(): Int
+    @Query("SELECT COUNT(*) FROM STORY_TABLE  WHERE storyType = :storyType  ")
+    fun getArticleItemsCount(storyType: Int): Int
 
     @Query("SELECT * FROM STORY_TABLE WHERE parent = :parentId")
     fun getComments(parentId: String): Flow<List<ArticleResponseEntity>>

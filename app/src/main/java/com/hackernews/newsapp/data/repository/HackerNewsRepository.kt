@@ -15,12 +15,12 @@ class HackerNewsRepository @Inject constructor(
     val hackerNewsDao: HackerNewsDao
 ) {
 
-    fun getNewStories(storyType: Int = 1): Flow<Result<List<AllStoriesEntity>>> {
+    fun getNewStories(storyType: Int = 1,refresh:Boolean=false): Flow<Result<List<AllStoriesEntity>>> {
 
         return hackerNewsDao
             .getAllStoriesList(storyType = storyType)
             .onEach {
-                if (it.isEmpty()) {
+                if (it.isEmpty() || refresh) {
                     saveNewStories()
                 }
             }
@@ -75,12 +75,37 @@ class HackerNewsRepository @Inject constructor(
 
     }
 
-    fun getArticleItem(): Flow<Result<List<ArticleResponse>>> {
+    fun getAllStories(storyType: Int,text: String = ""): Flow<Result<List<ArticleResponse>>> {
+
+
+        val articleResponseList = mutableListOf<ArticleResponse>()
+        println("getAllStories   --->  $text $storyType")
+
+        return hackerNewsDao
+            .getArticleItemStorySearch(storyType = storyType, text = text)
+            .map {
+
+                it.map {
+                    articleResponseList.add(it.toArticleResponse())
+                }
+                Result.success(articleResponseList)
+
+            }
+            .catch {
+                emit(Result.failure(it))
+            }
+
+
+
+    }
+
+
+    fun getArticleItem(storyType: Int): Flow<Result<List<ArticleResponse>>> {
 
         val articleResponseList = mutableListOf<ArticleResponse>()
 
         return hackerNewsDao
-            .getArticleItemStory()
+            .getArticleItemStory(storyType = storyType)
             .map {
 
                 it.map {
@@ -115,13 +140,13 @@ class HackerNewsRepository @Inject constructor(
 
     }
 
-    fun getArticleItemsCount(): Int = hackerNewsDao.getArticleItemsCount()
+    fun getArticleItemsCount(storyType: Int): Int = hackerNewsDao.getArticleItemsCount(storyType = storyType)
 
     suspend fun saveNewStories() {
 
         hackerNewsApi.getNewStories().also { allStories ->
 
-            if (hackerNewsDao.getDataCount(storyType = 1) == -1) {
+            if (hackerNewsDao.getDataCount(storyType = 1) == -1 || hackerNewsDao.getDataCount(storyType = 1) == 0) {
 
                 hackerNewsDao.saveAllStories(
                     AllStoriesEntity(
@@ -133,7 +158,7 @@ class HackerNewsRepository @Inject constructor(
 
                 val deleteResponse = hackerNewsDao.deleteStories(storyType = 1)
 
-                if (deleteResponse != -1) {
+                if (deleteResponse != 0) {
 
                     hackerNewsDao.saveAllStories(
                         AllStoriesEntity(
@@ -153,15 +178,31 @@ class HackerNewsRepository @Inject constructor(
 
         hackerNewsApi.getTopStories().also { allStories ->
 
-            hackerNewsDao.saveAllStories(
-                AllStoriesEntity(
-                    0,
-                    allStories.toString().substring(1,allStories.toString().length-1),
-                    2))
+            if (hackerNewsDao.getDataCount(storyType = 2) == -1 || hackerNewsDao.getDataCount(storyType = 2) == 0) {
+
+                hackerNewsDao.saveAllStories(
+                    AllStoriesEntity(
+                        0,
+                        allStories.toString().substring(1,allStories.toString().length-1),
+                        2))
+
+            } else {
+
+                val deleteResponse = hackerNewsDao.deleteStories(storyType = 2)
+
+                if (deleteResponse != 0) {
+
+                    hackerNewsDao.saveAllStories(
+                        AllStoriesEntity(
+                            0,
+                            allStories.toString().substring(1,allStories.toString().length-1),
+                            2))
+
+                }
+
+            }
 
         }
-
-
 
     }
 
@@ -169,11 +210,29 @@ class HackerNewsRepository @Inject constructor(
 
         hackerNewsApi.getBestStories().also { allStories ->
 
-            hackerNewsDao.saveAllStories(
-                AllStoriesEntity(
-                    0,
-                    allStories.toString().substring(1,allStories.toString().length-1),
-                    3))
+            if (hackerNewsDao.getDataCount(storyType = 3) == -1 || hackerNewsDao.getDataCount(storyType = 3) == 0) {
+
+                hackerNewsDao.saveAllStories(
+                    AllStoriesEntity(
+                        0,
+                        allStories.toString().substring(1,allStories.toString().length-1),
+                        3))
+
+            } else {
+
+                val deleteResponse = hackerNewsDao.deleteStories(storyType = 3)
+
+                if (deleteResponse != 0) {
+
+                    hackerNewsDao.saveAllStories(
+                        AllStoriesEntity(
+                            0,
+                            allStories.toString().substring(1,allStories.toString().length-1),
+                            3))
+
+                }
+
+            }
 
         }
 
@@ -181,7 +240,7 @@ class HackerNewsRepository @Inject constructor(
 
     }
 
-    suspend fun saveArticleItem(articleId: Int) {
+    suspend fun saveArticleItem(articleId: Int, storyType: Int) {
 
         hackerNewsApi.getItem(articleId = articleId).also { articleResponse ->
 
@@ -189,7 +248,7 @@ class HackerNewsRepository @Inject constructor(
              println("articleResponse  --> $articleResponse")
 
             hackerNewsDao.saveArticleItem(
-                articleItem = articleResponse.toArticleResponseEntity()
+                articleItem = articleResponse.toArticleResponseEntity(storyType = storyType)
             )
 
         }
@@ -204,7 +263,7 @@ class HackerNewsRepository @Inject constructor(
             println("articleResponse  --> $articleResponse")
 
             hackerNewsDao.saveArticleItem(
-                articleItem = articleResponse.toArticleResponseEntity()
+                articleItem = articleResponse.toArticleResponseEntity(storyType = 0)
             )
 
         }

@@ -5,7 +5,7 @@ import com.hackernews.newsapp.model.ArticleResponse
 
 object Mapper {
 
-    fun ArticleResponse.toArticleResponseEntity(): ArticleResponseEntity {
+    fun ArticleResponse.toArticleResponseEntity(storyType: Int): ArticleResponseEntity {
 
         return ArticleResponseEntity(
             id = this.id,
@@ -18,7 +18,8 @@ object Mapper {
             time = this.time,
             title = this.title,
             type = this.type,
-            url = this.url
+            url = this.url,
+            storyType = storyType
         )
 
     }

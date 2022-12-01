@@ -40,6 +40,8 @@ data class ArticleResponseEntity(
     var type: String?,
 
     @SerializedName("url")
-    var url: String?
+    var url: String?,
+
+    var storyType: Int
 
 )
