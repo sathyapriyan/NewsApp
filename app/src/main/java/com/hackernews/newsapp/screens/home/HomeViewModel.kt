@@ -28,12 +28,6 @@ class HomeViewModel @Inject constructor(
     val loadNewStoriesResponse: LiveData<ApiResponeResult<MutableList<ArticleResponse>>> =
         _loadNewStoriesResponse
 
-    fun onRefreshTriggered() {
-
-        loadNewStories()
-
-    }
-
     fun loadNewStories(refresh:Boolean=false) {
 
         if (refresh) {
