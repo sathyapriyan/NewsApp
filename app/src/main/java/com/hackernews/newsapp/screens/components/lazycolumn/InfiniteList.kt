@@ -26,7 +26,7 @@ fun InfiniteList(
         state = listState
     ) {
         
-        itemsIndexed(listItems) { index, item ->
+        itemsIndexed(listItems) { _, item ->
 
             TitleCard(
                 modifier = Modifier,

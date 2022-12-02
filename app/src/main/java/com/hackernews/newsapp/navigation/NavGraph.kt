@@ -37,7 +37,6 @@ fun SetupNavGraph(navController: NavHostController) {
             println("URL Value --> ${it.arguments?.getString(STORY_SCREEN_URL)}")
 
             StoryScreen(
-                navController = navController,
                 url = it.arguments?.getString(STORY_SCREEN_URL)!!
             )
         }

@@ -14,10 +14,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.hackernews.newsapp.ui.theme.BlueLightLynch
 import com.hackernews.newsapp.ui.theme.BlueVogue
 import com.hackernews.newsapp.ui.theme.GrayAthens
-import com.hackernews.newsapp.ui.theme.RedRibbon
 
 @Composable
 fun TabButton(

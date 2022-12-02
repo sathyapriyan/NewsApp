@@ -44,8 +44,6 @@ fun CommentsScreen(
     viewModel: CommentsViewModel = hiltViewModel()
 ) {
 
-    // val viewModel = hiltViewModel<CommentsViewModel>()
-
     val isDataLoading = remember {
         mutableStateOf(true)
     }
@@ -86,7 +84,8 @@ fun CommentsScreen(
                     .background(MaterialTheme.colors.screenBackgroundColor)
             ) {
 
-                val (txtTitle,txtHeading, circularProgress, lazyColumnComments) = createRefs()
+                val (txtTitle,txtHeading,
+                    circularProgress, lazyColumnComments) = createRefs()
 
                 TextCard(
                     modifier = Modifier

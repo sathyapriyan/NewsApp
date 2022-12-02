@@ -21,18 +21,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.hackernews.newsapp.R
 import com.hackernews.newsapp.screens.components.SearchField
+import com.hackernews.newsapp.ui.theme.BlueLightLynch
 import com.hackernews.newsapp.ui.theme.BlueVogue
 import com.hackernews.newsapp.ui.theme.GrayAthens
 import com.hackernews.newsapp.ui.theme.screenBackgroundColor
-import com.hackernews.newsapp.ui.theme.textColor
-import com.hackernews.newsapp.util.CommonUtil
 import com.hackernews.newsapp.util.Constants.APP_NAME
 
 @Composable
 fun TopBarComp(
     backgroundColor: Color = MaterialTheme.colors.screenBackgroundColor,
     title: String = APP_NAME,
-    titleColor: Color = BlueVogue,
     titleTxtSize: TextUnit = 24.sp,
     onTextChange: (String) -> Unit
 ) {
@@ -81,7 +79,6 @@ fun TopBarComp(
             }
         },
         actions = {
-            // actions()
 
             if (isSearchFieldVisible.value) {
 
@@ -94,7 +91,7 @@ fun TopBarComp(
                         },
                     painter = painterResource(id = R.drawable.ic_close),
                     contentDescription = "TopBar Search",
-                    tint = GrayAthens
+                    tint = BlueLightLynch
                 )
 
             } else {
@@ -108,7 +105,7 @@ fun TopBarComp(
                         },
                     painter = painterResource(id = R.drawable.ic_search),
                     contentDescription = "TopBar Search",
-                    tint = GrayAthens
+                    tint = BlueLightLynch
                 )
 
             }

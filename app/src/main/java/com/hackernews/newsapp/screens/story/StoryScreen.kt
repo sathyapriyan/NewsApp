@@ -9,7 +9,6 @@ import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.navigation.NavHostController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hackernews.newsapp.screens.components.LoadWebUrl
 import com.hackernews.newsapp.ui.theme.TheNewsAppTheme
@@ -17,7 +16,6 @@ import com.hackernews.newsapp.ui.theme.screenBackgroundColor
 
 @Composable
 fun StoryScreen(
-    navController: NavHostController,
     url: String
 ) {
 

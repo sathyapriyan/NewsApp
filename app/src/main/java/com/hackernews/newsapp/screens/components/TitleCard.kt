@@ -89,7 +89,8 @@ fun TitleCard(
                 iconId = R.drawable.comment,
                 strokeColor = GrayAthens,
                 color = BlueLightLynch,
-                text = if (articleResponse.kids?.size.toString() == "null") "0" else articleResponse.kids?.size.toString(),
+                text = if (articleResponse.kids?.size.toString() == "null") "0"
+                else articleResponse.kids?.size.toString(),
                 textSize = 10.sp,
                 fontWeight = FontWeight.Bold
             )

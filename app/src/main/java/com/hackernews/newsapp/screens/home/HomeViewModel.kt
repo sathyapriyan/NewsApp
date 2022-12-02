@@ -55,8 +55,8 @@ class HomeViewModel @Inject constructor(
                         loadArticleItems(allStoriesEntityList[0]
                             .stories
                             .split(",")
-                            .map {
-                                it.trim().toInt()
+                            .map { string ->
+                                string.trim().toInt()
                             },1,refresh)
 
                     } else {
@@ -102,8 +102,8 @@ class HomeViewModel @Inject constructor(
                         loadArticleItems(allStoriesEntityList[0]
                             .stories
                             .split(",")
-                            .map {
-                                it.trim().toInt()
+                            .map { string ->
+                                string.trim().toInt()
                             },2,refresh)
 
                     } else {
@@ -149,8 +149,8 @@ class HomeViewModel @Inject constructor(
                         loadArticleItems(allStoriesEntityList[0]
                             .stories
                             .split(",")
-                            .map {
-                                it.trim().toInt()
+                            .map { string ->
+                                string.trim().toInt()
                             },3,refresh)
 
                     } else {
@@ -252,13 +252,13 @@ class HomeViewModel @Inject constructor(
 
                 println("Inside collecting data")
 
-                it.onSuccess {
+                it.onSuccess { articleResponseList ->
 
-                    if (it.isNotEmpty()) {
+                    if (articleResponseList.isNotEmpty()) {
 
                         _isRefreshing.value = false
 
-                        _loadNewStoriesResponse.postValue(ApiResponeResult.Success(it.toMutableList()))
+                        _loadNewStoriesResponse.postValue(ApiResponeResult.Success(articleResponseList.toMutableList()))
 
                     } else {
 

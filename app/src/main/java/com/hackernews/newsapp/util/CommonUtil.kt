@@ -53,7 +53,7 @@ object CommonUtil {
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
-    fun htmlEntintyToString(htmlEntityString: String): String {
+    fun htmlEntityToString(htmlEntityString: String): String {
 
         return Html
             .fromHtml(htmlEntityString, Html.FROM_HTML_MODE_COMPACT)

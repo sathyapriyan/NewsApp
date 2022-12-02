@@ -23,7 +23,6 @@ import com.hackernews.newsapp.R
 import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.ui.theme.BlueLightLynch
 import com.hackernews.newsapp.ui.theme.BlueVogue
-import com.hackernews.newsapp.ui.theme.GrayAthens
 import com.hackernews.newsapp.util.CommonUtil
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -108,7 +107,7 @@ fun CommentsCard(
                         start.linkTo(txtCommentBy.start)
                         end.linkTo(parent.end)
                     },
-                text = CommonUtil.htmlEntintyToString(
+                text = CommonUtil.htmlEntityToString(
                     htmlEntityString = commentResponse.text!!
                 ),
                 color = BlueVogue,
@@ -128,7 +127,7 @@ fun CommentsCard(
                         )
                         start.linkTo(txtCommentBy.start)
                     },
-                text = CommonUtil.convertEpochToActualTime(commentResponse.time!!.toLong()) ?: "",
+                text = CommonUtil.convertEpochToActualTime(commentResponse.time!!.toLong()),
                 color = BlueLightLynch,
                 size = 10.sp,
                 fontWeight = FontWeight.Normal

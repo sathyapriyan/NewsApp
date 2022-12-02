@@ -44,7 +44,6 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
 
-    // val viewModel = hiltViewModel<HomeViewModel>()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val context = LocalContext.current
 
