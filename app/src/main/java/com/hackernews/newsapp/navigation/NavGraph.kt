@@ -3,7 +3,6 @@ package com.hackernews.newsapp.navigation
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavArgument
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -46,17 +45,19 @@ fun SetupNavGraph(navController: NavHostController) {
         composable(
             route = Screens.Comments.route,
             arguments = listOf(
+                navArgument(COMMENTS_SCREEN_TITLE) { type = NavType.StringType },
                 navArgument(COMMENTS_SCREEN_PARENT_ID) { type = NavType.StringType },
                 navArgument(COMMENTS_SCREENS_COMMENTS) { type = NavType.StringType }
             )) {
 
-            val commentsList = it.arguments?.getString(COMMENTS_SCREENS_COMMENTS)!!.trim().split(",").map { it.trim().toInt()}
+            val commentsList = it.arguments?.getString(COMMENTS_SCREENS_COMMENTS)!!.trim().split(",").map { sting ->
+                sting.trim().toInt()}
 
             println("commentsList NavGraph --> ${it.arguments?.getString(COMMENTS_SCREENS_COMMENTS)}")
             println("commentsList NavGraph2 --> $commentsList")
 
             CommentsScreen(
-                navController = navController,
+                title = it.arguments?.getString(COMMENTS_SCREEN_TITLE)!!,
                 parentId = it.arguments?.getString(COMMENTS_SCREEN_PARENT_ID)!!,
                 comments = commentsList
             )

@@ -1,5 +1,6 @@
 package com.hackernews.newsapp.screens.comments
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,7 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.hackernews.newsapp.data.repository.HackerNewsRepository
 import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.util.ApiResponeResult
+import com.hackernews.newsapp.util.CommonUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -16,8 +19,11 @@ import javax.inject.Inject
 @HiltViewModel
 class CommentsViewModel @Inject constructor(
     private val hackerNewsRepository: HackerNewsRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher,
+    @ApplicationContext val context: Context
 ): ViewModel() {
+
+    private val concurrentExceptionDelay = 1000L
 
     private val _loadCommentsResponse: MutableLiveData<ApiResponeResult<List<ArticleResponse>>> =
         MutableLiveData(ApiResponeResult.Loading())
@@ -32,23 +38,47 @@ class CommentsViewModel @Inject constructor(
 
         viewModelScope.launch(ioDispatcher) {
 
-            delay(1000)
+            // Delay used to Concurrent List Exception
+            delay(concurrentExceptionDelay)
 
-            commentsItems.map {
+            if (CommonUtil.hasInternetConnection(context = context)) {
 
-                println("Fetching comments...")
+                commentsItems.mapIndexed { index, value ->
 
-                hackerNewsRepository.saveComment(articleId = it)
+                    if (index <= 50) {
+
+                        println("Fetching comments...")
+
+                        hackerNewsRepository.saveComment(articleId = value)
+
+                    }
+
+                }
+
+                loadCommentsItems(parentId = parentId)
+
+            } else {
+
+                val commentsCountFromDB = hackerNewsRepository.getCommentsCountFromDB(parentId = parentId)
+                println("commentsCountFromDB --> $commentsCountFromDB")
+
+                if (commentsCountFromDB != 0) {
+
+                    loadCommentsItems(parentId = parentId)
+
+                } else {
+
+                    _loadCommentsResponse.postValue(ApiResponeResult.Error("No Internet Connection"))
+
+                }
 
             }
-
-            loadCommentsItems(parentId = parentId)
 
         }
 
     }
 
-    fun loadCommentsItems(parentId: String) {
+    private fun loadCommentsItems(parentId: String) {
 
         viewModelScope.launch(ioDispatcher) {
 
@@ -58,13 +88,13 @@ class CommentsViewModel @Inject constructor(
 
                 println("Inside collecting comments...")
 
-                it.onSuccess {
+                it.onSuccess { articleResponseList ->
 
-                    if (it.isNotEmpty()) {
+                    if (articleResponseList.isNotEmpty()) {
 
                         println("Before emitting response --> $it")
 
-                        _loadCommentsResponse.postValue(ApiResponeResult.Success(it))
+                        _loadCommentsResponse.postValue(ApiResponeResult.Success(articleResponseList))
 
                     } else {
 

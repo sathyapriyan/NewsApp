@@ -1,5 +1,6 @@
 package com.hackernews.newsapp.screens.home
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,7 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.hackernews.newsapp.data.repository.HackerNewsRepository
 import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.util.ApiResponeResult
+import com.hackernews.newsapp.util.CommonUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val hackerNewsRepository: HackerNewsRepository,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _isRefreshing = MutableStateFlow(false)
@@ -207,8 +211,7 @@ class HomeViewModel @Inject constructor(
 
     }
 
-
-    fun loadArticleItems(articleItems: List<Int>,storyType:Int,refresh:Boolean=false) {
+    private fun loadArticleItems(articleItems: List<Int>, storyType:Int, refresh:Boolean=false) {
 
         println("List Article IDs --> $articleItems")
 
@@ -222,15 +225,23 @@ class HomeViewModel @Inject constructor(
 
                 println("Inside fetching data")
 
-                articleItems.mapIndexed { index, value ->
+                if (CommonUtil.hasInternetConnection(context = context)) {
 
-                    if (index <= 20) {
+                    articleItems.mapIndexed { index, value ->
 
-                        println("Fetching data...")
+                        if (index <= articleItems.size/5) {
 
-                        hackerNewsRepository.saveArticleItem(articleId = value, storyType = storyType)
+                            println("Fetching data...")
+
+                            hackerNewsRepository.saveArticleItem(articleId = value, storyType = storyType)
+
+                        }
 
                     }
+
+                } else {
+
+                    _loadNewStoriesResponse.postValue(ApiResponeResult.Error("No Internet Connection"))
 
                 }
             }

@@ -1,7 +1,6 @@
 package com.hackernews.newsapp.di.modules
 
 import com.hackernews.newsapp.data.local.dao.HackerNewsDao
-import com.hackernews.newsapp.data.local.database.HackerNewsDatabase
 import com.hackernews.newsapp.data.remote.HackerNewsApi
 import com.hackernews.newsapp.data.repository.HackerNewsRepository
 import dagger.Module

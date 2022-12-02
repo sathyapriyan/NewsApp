@@ -1,13 +1,16 @@
 package com.hackernews.newsapp.screens.components
 
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -43,6 +46,10 @@ fun CommentsCard(
     )
 ) {
 
+    var isLoadingMoreComments by remember {
+        mutableStateOf(false)
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -60,7 +67,8 @@ fun CommentsCard(
         ) {
 
             val (imageCommentProfile, txtCommentBy, txtComment,
-                commentTime, txtViewMoreComments) = createRefs()
+                commentTime, txtViewMoreComments,
+                circularIndicatorLoadMoreComments) = createRefs()
 
             Icon(
                 modifier = Modifier
@@ -84,7 +92,7 @@ fun CommentsCard(
                         bottom.linkTo(imageCommentProfile.bottom)
                         start.linkTo(imageCommentProfile.end)
                     },
-                text = commentResponse.articleBy!!,
+                text = commentResponse.articleBy ?: "",
                 color = BlueVogue,
                 size = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -100,7 +108,9 @@ fun CommentsCard(
                         start.linkTo(txtCommentBy.start)
                         end.linkTo(parent.end)
                     },
-                text = commentResponse.text!!,
+                text = CommonUtil.htmlEntintyToString(
+                    htmlEntityString = commentResponse.text!!
+                ),
                 color = BlueVogue,
                 size = 12.sp,
                 fontWeight = FontWeight.Normal
@@ -112,11 +122,13 @@ fun CommentsCard(
                     .padding(5.dp)
                     .constrainAs(commentTime) {
                         top.linkTo(txtComment.bottom)
-                        bottom.linkTo(txtViewMoreComments.top,
-                        goneMargin = 20.dp)
+                        bottom.linkTo(
+                            txtViewMoreComments.top,
+                            goneMargin = 20.dp
+                        )
                         start.linkTo(txtCommentBy.start)
                     },
-                text = CommonUtil.convertEpochToActualTime(commentResponse.time!!.toLong()),
+                text = CommonUtil.convertEpochToActualTime(commentResponse.time!!.toLong()) ?: "",
                 color = BlueLightLynch,
                 size = 10.sp,
                 fontWeight = FontWeight.Normal
@@ -132,11 +144,38 @@ fun CommentsCard(
                             start.linkTo(txtCommentBy.start)
                             top.linkTo(commentTime.bottom)
                             bottom.linkTo(parent.bottom)
+                        }
+                        .clickable {
+
+                            isLoadingMoreComments = true
+
+                            Handler(Looper.getMainLooper()).postDelayed({
+                                isLoadingMoreComments = false
+                            }, 5000)
+
                         },
                     text = "View ${commentResponse.kids?.size} more comments",
                     color = BlueVogue,
                     size = 10.sp,
                     fontWeight = FontWeight.Normal
+                )
+
+            }
+
+            if (isLoadingMoreComments) {
+
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .constrainAs(circularIndicatorLoadMoreComments) {
+
+                            top.linkTo(txtViewMoreComments.top)
+                            bottom.linkTo(txtViewMoreComments.bottom)
+                            start.linkTo(txtViewMoreComments.end)
+
+                        },
+                    color = BlueVogue,
+                    strokeWidth = 2.dp
                 )
 
             }

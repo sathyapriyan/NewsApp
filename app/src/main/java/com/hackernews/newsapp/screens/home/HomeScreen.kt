@@ -2,14 +2,9 @@ package com.hackernews.newsapp.screens.home
 
 import android.content.res.Configuration
 import android.os.Build
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.*
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -17,9 +12,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,28 +21,23 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.hackernews.newsapp.R
 import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.navigation.Screens
-import com.hackernews.newsapp.screens.components.SearchField
 import com.hackernews.newsapp.screens.components.TabButton
-import com.hackernews.newsapp.screens.components.TitleCard
+import com.hackernews.newsapp.screens.components.WarningIconText
 import com.hackernews.newsapp.screens.components.lazycolumn.InfiniteList
-import com.hackernews.newsapp.ui.theme.BlueVogue
 import com.hackernews.newsapp.ui.theme.RedRibbon
 import com.hackernews.newsapp.ui.theme.TheNewsAppTheme
 import com.hackernews.newsapp.ui.theme.screenBackgroundColor
 import com.hackernews.newsapp.util.ApiResponeResult
 import com.hackernews.newsapp.util.CommonUtil
-import kotlinx.coroutines.launch
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @RequiresApi(Build.VERSION_CODES.O)
-@OptIn(ExperimentalMaterialApi::class, ExperimentalPagerApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
@@ -79,19 +67,19 @@ fun HomeScreen(
     val pullRefreshState = rememberPullRefreshState(
         refreshing = isRefreshing, onRefresh = {
 
-            when(selectedTabButton){
-                "New"-> viewModel.loadNewStories(refresh = true)
-                "Top"-> viewModel.loadTopStories(refresh = true)
-                "Best"-> viewModel.loadBestStories(refresh = true)
-                else -> {viewModel.loadNewStories(refresh = true)}
+            when (selectedTabButton) {
+                "New" -> viewModel.loadNewStories(refresh = true)
+                "Top" -> viewModel.loadTopStories(refresh = true)
+                "Best" -> viewModel.loadBestStories(refresh = true)
+                else -> {
+                    viewModel.loadNewStories(refresh = true)
+                }
             }
 
         }
     )
 
-    val coroutineScope = rememberCoroutineScope()
-
-    var isDataLoading = remember {
+    val isDataLoading = remember {
         mutableStateOf(true)
     }
 
@@ -124,18 +112,22 @@ fun HomeScreen(
         }
 
         Scaffold(
-            topBar = { TopBarComp(onTextChange = {
+            topBar = {
+                TopBarComp(onTextChange = {
 
+                    viewModel.loadSearchStories(
+                        text = it, storyType = when (selectedTabButton) {
+                            "New" -> 1
+                            "Top" -> 2
+                            "Best" -> 3
+                            else -> {
+                                1
+                            }
+                        }
+                    )
 
-              //  articleResponseList.clear()
-                viewModel.loadSearchStories(text = it, storyType = when(selectedTabButton){
-                    "New"-> 1
-                    "Top"-> 2
-                    "Best"-> 3
-                    else -> {1}
                 })
-
-            }) }
+            }
         ) { innerPadding ->
 
             ConstraintLayout(
@@ -146,7 +138,9 @@ fun HomeScreen(
                     .pullRefresh(pullRefreshState)
             ) {
 
-                val (tabRow, lazyColumStories, pullRefreshIndicator, circularProgress, warningText) = createRefs()
+                val (tabRow, lazyColumStories,
+                    pullRefreshIndicator, circularProgress,
+                    warningText) = createRefs()
 
                 Row(
                     modifier = Modifier
@@ -163,7 +157,7 @@ fun HomeScreen(
 
                     TabButton(
                         modifier = Modifier,
-                        icon = R.drawable.ic_logo,
+                        icon = R.drawable.ic_new_news,
                         text = "New",
                         isSelected = newTabButtonSelected
                     ) {
@@ -173,7 +167,7 @@ fun HomeScreen(
 
                     TabButton(
                         modifier = Modifier,
-                        icon = R.drawable.ic_logo,
+                        icon = R.drawable.ic_top_news,
                         text = "Top",
                         isSelected = topTabButtonSelected
                     ) {
@@ -183,7 +177,7 @@ fun HomeScreen(
 
                     TabButton(
                         modifier = Modifier,
-                        icon = R.drawable.ic_logo,
+                        icon = R.drawable.ic_score,
                         text = "Best",
                         isSelected = bestTabButtonSelected
                     ) {
@@ -245,13 +239,14 @@ fun HomeScreen(
 
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .wrapContentSize()
+                            .size(24.dp)
                             .constrainAs(circularProgress) {
                                 top.linkTo(parent.top)
                                 bottom.linkTo(parent.bottom)
                                 start.linkTo(parent.start)
                                 end.linkTo(parent.end)
-                            }
+                            },
+                        color = RedRibbon
                     )
 
                 }
@@ -270,19 +265,20 @@ fun HomeScreen(
 
                         articleResponseList = newStoriesResponse.data!!.toMutableStateList()
 
-                            if (articleResponseList.size>=5){
-                                articleResponseSubList =
-                                    articleResponseList
-                                    .subList(0,
-                                        if (articleResponseList.size >= articleResponseList.size+11){
-                                            articleResponseSubList.size+10
-                                        } else {
-                                            articleResponseList.size-1
-                                        })
-                                    .toMutableStateList()
-                            }else{
-                                articleResponseSubList=articleResponseList
-                            }
+                        articleResponseSubList = if (articleResponseList.size >= 5) {
+                            articleResponseList
+                                .subList(
+                                    0,
+                                    if (articleResponseList.size >= articleResponseList.size + 11) {
+                                        articleResponseSubList.size + 10
+                                    } else {
+                                        articleResponseList.size - 1
+                                    }
+                                )
+                                .toMutableStateList()
+                        } else {
+                            articleResponseList
+                        }
 
                         println("Lazy Column --> On Load")
                         println("Lazy Column Lis articleResponseList -->  ${articleResponseList.toList()}")
@@ -301,14 +297,28 @@ fun HomeScreen(
                                 }, articleResponseSubList,
                             onClickItem = { url ->
 
-                                val encodedUrl =
-                                    URLEncoder.encode(url, StandardCharsets.UTF_8.toString())
-
                                 if (url != null) {
 
-                                    navController.navigate(
-                                        route = Screens.Story.passUrl(url = encodedUrl)
-                                    )
+                                    if (CommonUtil.hasInternetConnection(context = context)) {
+
+                                        val encodedUrl =
+                                            URLEncoder.encode(
+                                                url,
+                                                StandardCharsets.UTF_8.toString()
+                                            )
+
+                                        navController.navigate(
+                                            route = Screens.Story.passUrl(url = encodedUrl)
+                                        )
+
+                                    } else {
+
+                                        CommonUtil.toastMessage(
+                                            context = context,
+                                            message = "No Internet !!"
+                                        ).show()
+
+                                    }
 
                                 } else {
 
@@ -320,14 +330,15 @@ fun HomeScreen(
                                 }
 
                             },
-                            onClickComment = { parentId, comments ->
+                            onClickComment = { title, parentId, comments ->
 
                                 println("Lazy Column --> LoadMore Triggered")
 
                                 if (comments?.isNotEmpty() == true) {
 
                                     navController.navigate(
-                                        Screens.Comments.passParentIdAndCommentList(
+                                        Screens.Comments.passTitleParentIdAndCommentList(
+                                            title = title,
                                             parentId = parentId,
                                             commentsList = comments.toString()
                                                 .substring(
@@ -352,15 +363,19 @@ fun HomeScreen(
                                 println("Lazy Column --> On Load More")
 
 
-                                if(articleResponseSubList.size>=5){
+                                if (articleResponseSubList.size >= 5) {
                                     articleResponseSubList
-                                        .addAll(articleResponseList
-                                            .subList(articleResponseSubList.size-1,
-                                                if (articleResponseList.size >= articleResponseList.size+11){
-                                                    articleResponseSubList.size+10
-                                                } else {
-                                                    articleResponseList.size
-                                                }))
+                                        .addAll(
+                                            articleResponseList
+                                                .subList(
+                                                    articleResponseSubList.size - 1,
+                                                    if (articleResponseList.size >= articleResponseList.size + 11) {
+                                                        articleResponseSubList.size + 10
+                                                    } else {
+                                                        articleResponseList.size
+                                                    }
+                                                )
+                                        )
 
                                 }
 
@@ -372,20 +387,40 @@ fun HomeScreen(
 
                         isDataLoading.value = false
 
-                        Text(
-                            modifier = Modifier
-                                .wrapContentSize()
-                                .constrainAs(warningText) {
+                        if (newStoriesResponse.message?.contains("Unable to resolve host") == true
+                            || newStoriesResponse.message?.contains("No Internet Connection") == true) {
+
+                            WarningIconText(
+                                modifier = Modifier.constrainAs(warningText) {
                                     start.linkTo(parent.start)
                                     end.linkTo(parent.end)
                                     top.linkTo(parent.top)
                                     bottom.linkTo(parent.bottom)
                                 },
-                            text = "${newStoriesResponse.message}"
-                        )
+                                text = "No Internet",
+                                icon = R.drawable.ic_no_internet
+                            )
+
+                        } else {
+
+                            Text(
+                                modifier = Modifier
+                                    .wrapContentSize()
+                                    .constrainAs(warningText) {
+                                        start.linkTo(parent.start)
+                                        end.linkTo(parent.end)
+                                        top.linkTo(parent.top)
+                                        bottom.linkTo(parent.bottom)
+                                    },
+                                text = "${newStoriesResponse.message}",
+                                color = RedRibbon
+                            )
+
+                        }
 
                     }
 
+                    else -> {}
                 }
 
                 PullRefreshIndicator(

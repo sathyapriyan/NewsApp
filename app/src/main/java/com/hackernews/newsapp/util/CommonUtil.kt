@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.text.Html
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import java.time.Instant
@@ -48,6 +49,15 @@ object CommonUtil {
             message,
             Toast.LENGTH_SHORT
         )
+
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun htmlEntintyToString(htmlEntityString: String): String {
+
+        return Html
+            .fromHtml(htmlEntityString, Html.FROM_HTML_MODE_COMPACT)
+            .toString()
 
     }
 

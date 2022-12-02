@@ -32,7 +32,7 @@ import com.hackernews.newsapp.util.CommonUtil
 fun TitleCard(
     modifier: Modifier = Modifier,
     articleResponse: ArticleResponse,
-    onClickComment: (String, List<Int>?) -> Unit,
+    onClickComment: (String,String, List<Int>?) -> Unit,
     onClickCard: (String?) -> Unit
 ) {
 
@@ -84,7 +84,7 @@ fun TitleCard(
                         end.linkTo(cardScore.start)
                     }
                     .clickable {
-                        onClickComment(articleResponse.id,articleResponse.kids)
+                        onClickComment(articleResponse.title!!,articleResponse.id,articleResponse.kids)
                     },
                 iconId = R.drawable.comment,
                 strokeColor = GrayAthens,

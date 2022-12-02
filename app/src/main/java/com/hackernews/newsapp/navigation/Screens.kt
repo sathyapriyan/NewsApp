@@ -5,6 +5,7 @@ import com.hackernews.newsapp.util.Constants.HOME_SCREEN_ROUTE
 import com.hackernews.newsapp.util.Constants.STORY_SCREEN_ROUTE
 
 const val STORY_SCREEN_URL = "url"
+const val COMMENTS_SCREEN_TITLE = "title"
 const val COMMENTS_SCREEN_PARENT_ID = "parent_id"
 const val COMMENTS_SCREENS_COMMENTS = "comments"
 
@@ -25,11 +26,11 @@ sealed class Screens(
         }
 
     }
-    object Comments: Screens("$COMMENTS_SCREEN_ROUTE/{$COMMENTS_SCREEN_PARENT_ID}/{$COMMENTS_SCREENS_COMMENTS}") {
+    object Comments: Screens("$COMMENTS_SCREEN_ROUTE/{$COMMENTS_SCREEN_TITLE}/{$COMMENTS_SCREEN_PARENT_ID}/{$COMMENTS_SCREENS_COMMENTS}") {
 
-        fun passParentIdAndCommentList(parentId: String, commentsList: String): String {
+        fun passTitleParentIdAndCommentList(title: String, parentId: String, commentsList: String): String {
 
-            return "$COMMENTS_SCREEN_ROUTE/$parentId/$commentsList"
+            return "$COMMENTS_SCREEN_ROUTE/$title/$parentId/$commentsList"
 
         }
 

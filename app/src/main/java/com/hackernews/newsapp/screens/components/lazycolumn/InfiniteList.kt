@@ -16,7 +16,7 @@ fun InfiniteList(
     modifier: Modifier,
     listItems: List<ArticleResponse>,
     onLoadMore: () -> Unit,
-    onClickComment: (String,List<Int>?) -> Unit,
+    onClickComment: (String,String,List<Int>?) -> Unit,
     onClickItem: (String?) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -31,9 +31,9 @@ fun InfiniteList(
             TitleCard(
                 modifier = Modifier,
                 articleResponse = item,
-                { parentId, comments ->
+                { title, parentId, comments ->
 
-                    onClickComment(parentId,comments)
+                    onClickComment(title,parentId,comments)
 
                 },
                 { url ->

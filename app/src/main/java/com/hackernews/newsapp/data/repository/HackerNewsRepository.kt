@@ -2,7 +2,6 @@ package com.hackernews.newsapp.data.repository
 
 import com.hackernews.newsapp.data.local.dao.HackerNewsDao
 import com.hackernews.newsapp.data.local.entity.AllStoriesEntity
-import com.hackernews.newsapp.data.local.entity.ArticleResponseEntity
 import com.hackernews.newsapp.data.remote.HackerNewsApi
 import com.hackernews.newsapp.model.ArticleResponse
 import com.hackernews.newsapp.util.Mapper.toArticleResponse
@@ -82,11 +81,11 @@ class HackerNewsRepository @Inject constructor(
         println("getAllStories   --->  $text $storyType")
 
         return hackerNewsDao
-            .getArticleItemStorySearch(storyType = storyType, text = text)
+            .getArticleItemStorySearch(storyType = storyType, text = "%$text%")
             .map {
 
-                it.map {
-                    articleResponseList.add(it.toArticleResponse())
+                it.map { articleResponseEntity ->
+                    articleResponseList.add(articleResponseEntity.toArticleResponse())
                 }
                 Result.success(articleResponseList)
 
@@ -95,10 +94,7 @@ class HackerNewsRepository @Inject constructor(
                 emit(Result.failure(it))
             }
 
-
-
     }
-
 
     fun getArticleItem(storyType: Int): Flow<Result<List<ArticleResponse>>> {
 
@@ -108,8 +104,8 @@ class HackerNewsRepository @Inject constructor(
             .getArticleItemStory(storyType = storyType)
             .map {
 
-                it.map {
-                    articleResponseList.add(it.toArticleResponse())
+                it.map { articleResponseEntity ->
+                    articleResponseList.add(articleResponseEntity.toArticleResponse())
                 }
                 Result.success(articleResponseList)
 
@@ -128,8 +124,8 @@ class HackerNewsRepository @Inject constructor(
             .getComments(parentId = parentId)
             .map {
 
-                it.map {
-                    commentsResponseList.add(it.toArticleResponse())
+                it.map { articleResponseEntity ->
+                    commentsResponseList.add(articleResponseEntity.toArticleResponse())
                 }
                 Result.success(commentsResponseList)
 
@@ -142,7 +138,11 @@ class HackerNewsRepository @Inject constructor(
 
     fun getArticleItemsCount(storyType: Int): Int = hackerNewsDao.getArticleItemsCount(storyType = storyType)
 
-    suspend fun saveNewStories() {
+    fun getCommentsCountFromDB(parentId: String): Int = hackerNewsDao.getCommentsCount(parentId = parentId)
+
+
+
+    private suspend fun saveNewStories() {
 
         hackerNewsApi.getNewStories().also { allStories ->
 
@@ -174,7 +174,7 @@ class HackerNewsRepository @Inject constructor(
 
     }
 
-    suspend fun saveTopStories() {
+    private suspend fun saveTopStories() {
 
         hackerNewsApi.getTopStories().also { allStories ->
 
@@ -206,7 +206,7 @@ class HackerNewsRepository @Inject constructor(
 
     }
 
-    suspend fun saveBestStories() {
+    private suspend fun saveBestStories() {
 
         hackerNewsApi.getBestStories().also { allStories ->
 
@@ -235,8 +235,6 @@ class HackerNewsRepository @Inject constructor(
             }
 
         }
-
-
 
     }
 

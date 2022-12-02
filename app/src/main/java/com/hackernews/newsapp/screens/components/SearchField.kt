@@ -19,6 +19,7 @@ import com.hackernews.newsapp.R
 import com.hackernews.newsapp.ui.theme.BlueLightLynch
 import com.hackernews.newsapp.ui.theme.BlueVogue
 import com.hackernews.newsapp.ui.theme.GrayAthens
+import com.hackernews.newsapp.ui.theme.RedRibbon
 
 @Composable
 fun SearchField(
@@ -71,7 +72,7 @@ fun SearchField(
                             },
                         painter = painterResource(id = R.drawable.ic_clear_txt),
                         contentDescription = "Clear Icon",
-                        tint = BlueVogue
+                        tint = RedRibbon
                     )
 
                 }

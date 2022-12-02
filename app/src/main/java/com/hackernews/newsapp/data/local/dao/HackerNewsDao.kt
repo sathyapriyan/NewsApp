@@ -23,7 +23,7 @@ interface HackerNewsDao {
         storyType: Int
     ): Flow<List<ArticleResponseEntity>>
 
-    @Query("SELECT * FROM STORY_TABLE WHERE type = :itemType AND storyType = :storyType  AND text LIKE '%' || :text || '%'")
+    @Query("SELECT * FROM STORY_TABLE WHERE type = :itemType AND storyType = :storyType  AND title LIKE :text")
     fun getArticleItemStorySearch(
         itemType: String = TYPE_STORY,
         storyType: Int,
@@ -50,5 +50,8 @@ interface HackerNewsDao {
 
     @Query("SELECT * FROM STORY_TABLE WHERE parent = :parentId")
     fun getComments(parentId: String): Flow<List<ArticleResponseEntity>>
+
+    @Query("SELECT * FROM STORY_TABLE WHERE parent = :parentId")
+    fun getCommentsCount(parentId: String): Int
 
 }

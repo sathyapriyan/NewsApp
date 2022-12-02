@@ -3,9 +3,8 @@ package com.hackernews.newsapp.screens.comments
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.CircularProgressIndicator
@@ -14,8 +13,9 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,26 +23,22 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.hackernews.newsapp.R
 import com.hackernews.newsapp.model.ArticleResponse
-import com.hackernews.newsapp.navigation.Screens
 import com.hackernews.newsapp.screens.components.CommentsCard
 import com.hackernews.newsapp.screens.components.TextCard
-import com.hackernews.newsapp.screens.components.TitleCard
+import com.hackernews.newsapp.screens.components.WarningIconText
 import com.hackernews.newsapp.ui.theme.BlueVogue
+import com.hackernews.newsapp.ui.theme.RedRibbon
 import com.hackernews.newsapp.ui.theme.TheNewsAppTheme
 import com.hackernews.newsapp.ui.theme.screenBackgroundColor
 import com.hackernews.newsapp.util.ApiResponeResult
-import com.hackernews.newsapp.util.CommonUtil
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun CommentsScreen(
-    navController: NavHostController,
+    title: String,
     parentId: String,
     comments: List<Int>,
     viewModel: CommentsViewModel = hiltViewModel()
@@ -53,8 +49,6 @@ fun CommentsScreen(
     val isDataLoading = remember {
         mutableStateOf(true)
     }
-
-    val context = LocalContext.current
 
     val systemUiController = rememberSystemUiController()
     val statusBarColor = MaterialTheme.colors.screenBackgroundColor
@@ -83,7 +77,7 @@ fun CommentsScreen(
 
         }
 
-        Scaffold() { innerPadding ->
+        Scaffold { innerPadding ->
 
             ConstraintLayout(
                 modifier = Modifier
@@ -92,19 +86,36 @@ fun CommentsScreen(
                     .background(MaterialTheme.colors.screenBackgroundColor)
             ) {
 
-                val (txtTitle, circularProgress, lazyColumnComments) = createRefs()
+                val (txtTitle,txtHeading, circularProgress, lazyColumnComments) = createRefs()
+
+                TextCard(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .padding(10.dp)
+                        .constrainAs(txtHeading) {
+                            top.linkTo(parent.top)
+                            bottom.linkTo(txtTitle.top)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                        },
+                    text = "Comments",
+                    color = if (isSystemInDarkTheme()) Color.White else BlueVogue,
+                    size = 20.sp,
+                    fontWeight = FontWeight.Normal
+                )
 
                 TextCard(
                     modifier = Modifier
                         .wrapContentSize()
                         .padding(10.dp)
                         .constrainAs(txtTitle) {
-                            top.linkTo(parent.top)
+                            top.linkTo(txtHeading.bottom)
+                            bottom.linkTo(lazyColumnComments.top)
                             start.linkTo(parent.start)
                             end.linkTo(parent.end)
                         },
-                    text = "Comments",
-                    color = BlueVogue,
+                    text = title,
+                    color = if (isSystemInDarkTheme()) Color.White else BlueVogue,
                     size = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -113,13 +124,14 @@ fun CommentsScreen(
 
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .wrapContentSize()
+                            .size(24.dp)
                             .constrainAs(circularProgress) {
                                 top.linkTo(parent.top)
                                 bottom.linkTo(parent.bottom)
                                 start.linkTo(parent.start)
                                 end.linkTo(parent.end)
-                            }
+                            },
+                        color = RedRibbon
                     )
 
                 }
@@ -159,7 +171,7 @@ fun CommentsScreen(
 
                                 println("commentsResponseList After --> ${commentsResponseList.size}")
 
-                                itemsIndexed(commentsResponseList) { index, item ->
+                                itemsIndexed(commentsResponseList) { _, item ->
 
                                     CommentsCard(
                                         modifier = Modifier,
@@ -176,14 +188,45 @@ fun CommentsScreen(
 
                                 item {
 
-                                    Text(
-                                        text = "${commentsResponse.message}"
-                                    )
+                                    if (commentsResponse.message?.contains("Unable to resolve host") == true
+                                        || commentsResponse.message?.contains("No Internet Connection") == true) {
+
+                                        Column(modifier = Modifier
+                                            .fillMaxSize(),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center) {
+
+                                            WarningIconText(
+                                                modifier = Modifier,
+                                                text = "No Internet",
+                                                icon = R.drawable.ic_no_internet
+                                            )
+
+                                        }
+
+                                    } else {
+
+                                        Column(modifier = Modifier
+                                            .fillMaxSize(),
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.Center) {
+
+                                            Text(
+                                                modifier = Modifier
+                                                    .wrapContentSize(),
+                                                text = "${commentsResponse.message}",
+                                                color = RedRibbon
+                                            )
+
+                                        }
+
+                                    }
 
                                 }
 
                             }
 
+                            else -> {}
                         }
 
                     })
@@ -204,7 +247,7 @@ fun CommentsScreenPreview() {
 
     TheNewsAppTheme {
 
-        CommentsScreen(rememberNavController(),"7787878",listOf())
+        CommentsScreen("Title","7787878",listOf())
 
     }
 
